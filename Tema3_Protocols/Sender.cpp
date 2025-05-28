@@ -20,7 +20,7 @@ Frame Sender::sendFrame() {
 		Frame invalidFrame;
 		invalidFrame.sequenceNumber = UINT32_MAX;
 		invalidFrame.isCorrupted = true;
-		return invalidFrame; // returneaza un frame invalids
+		return invalidFrame; // returneaza un frame invalid
 	}
 
 	Frame frame = createFrame(nextSeqNum); // creeaza un frame cu numarul de secventa curent

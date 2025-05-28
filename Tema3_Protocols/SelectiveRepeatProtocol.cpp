@@ -182,3 +182,142 @@ void SelectiveRepeatProtocol::simulate(int numFrames) {
     Utils::logMessage("Selective Repeat Protocol General Simulation Complete");
     Utils::printDivider('=', 70);
 }
+
+void SelectiveRepeatProtocol::simulateWithRandomCorruption(int numFrames, double corruptionRate) {
+    Utils::printDivider('=', 70);
+    Utils::logMessage("Starting Selective Repeat Protocol with Random Corruption");
+    Utils::logMessage("Number of frames: " + std::to_string(numFrames));
+    Utils::logMessage("Corruption rate: " + std::to_string(corruptionRate * 100) + "%");
+    Utils::printDivider('=', 70);
+
+    // Track which frames were corrupted for retransmission
+    std::vector<uint32_t> corruptedFrames;
+    std::vector<Frame> sentFrames;
+    int actualFramesSent = 0;  // Track actual frames sent
+
+    // Phase 1: Initial transmission of all frames
+	Utils::logMessage("\n=====================================");
+    Utils::logMessage("\n=== PHASE 1: Initial Transmission ===");
+
+    // Reset sender to ensure we start from sequence 0
+    sender = Sender(4);  // Reset with same window size
+    receiver = Receiver(4);  // Reset receiver too
+
+    while (actualFramesSent < numFrames && sender.canSendFrame()) {
+        Utils::printDivider();
+        Utils::logMessage("Sending frame " + std::to_string(actualFramesSent));
+
+        // Send the frame
+        Frame frame = sender.sendFrame();
+        sentFrames.push_back(frame);
+        actualFramesSent++;
+
+        // Randomly corrupt the frame
+        Frame receivedFrame = Utils::simulateCorruption(frame, corruptionRate);
+
+        // Receiver processes the frame
+        receiver.receiveFrame(receivedFrame);
+
+        // If the frame was not corrupted, sender receives ACK
+        if (!receivedFrame.isCorrupted) {
+            sender.receiveAck(frame.sequenceNumber);
+            Utils::logMessage("Frame " + std::to_string(frame.sequenceNumber) + " acknowledged");
+        }
+        else {
+            corruptedFrames.push_back(frame.sequenceNumber);
+            Utils::logMessage("Frame " + std::to_string(frame.sequenceNumber) +
+                " was CORRUPTED - will need retransmission");
+        }
+
+        // Check if we need to process ACKs to free window space
+        if (!sender.canSendFrame() && actualFramesSent < numFrames) {
+            Utils::logMessage("Window full - waiting for ACKs before continuing...");
+            // In a real system, we'd wait for ACKs here
+            // For simulation, we'll continue with retransmissions
+            break;
+        }
+    }
+
+    // Phase 2: Retransmit corrupted frames
+    if (!corruptedFrames.empty()) {
+        Utils::logMessage("\n===================================================");
+        Utils::logMessage("\n=== PHASE 2: Retransmission of Corrupted Frames ===");
+        Utils::logMessage("Frames to retransmit: ");
+        for (auto seqNum : corruptedFrames) {
+            std::cout << seqNum << " ";
+        }
+        std::cout << std::endl;
+
+        for (auto seqNum : corruptedFrames) {
+            Utils::printDivider();
+            Utils::logMessage("Retransmitting frame " + std::to_string(seqNum));
+
+            // Create a new frame with the same sequence number
+            Frame retransmitFrame = createFrame(seqNum);
+
+            // Send without corruption this time (or with lower probability)
+            receiver.receiveFrame(retransmitFrame);
+            sender.receiveAck(seqNum);
+
+            Utils::logMessage("Frame " + std::to_string(seqNum) + " successfully retransmitted");
+        }
+    }
+    else {
+        Utils::logMessage("\n=== No frames were corrupted - no retransmission needed ===");
+    }
+
+    // Continue sending remaining frames if any
+    if (actualFramesSent < numFrames) {
+        Utils::logMessage("\n=========================================");
+        Utils::logMessage("\n=== PHASE 3: Sending Remaining Frames ===");
+
+        while (actualFramesSent < numFrames && sender.canSendFrame()) {
+            Utils::printDivider();
+            Utils::logMessage("Sending frame " + std::to_string(actualFramesSent));
+
+            Frame frame = sender.sendFrame();
+            actualFramesSent++;
+
+            Frame receivedFrame = Utils::simulateCorruption(frame, corruptionRate);
+            receiver.receiveFrame(receivedFrame);
+
+            if (!receivedFrame.isCorrupted) {
+                sender.receiveAck(frame.sequenceNumber);
+                Utils::logMessage("Frame " + std::to_string(frame.sequenceNumber) + " acknowledged");
+            }
+            else {
+                // Add to corruption list for potential future retransmission
+                Utils::logMessage("Frame " + std::to_string(frame.sequenceNumber) +
+                    " corrupted - would need retransmission in real scenario");
+            }
+        }
+    }
+
+    // Show final results
+    Utils::printDivider();
+    Utils::logMessage("\n=== FINAL RESULTS ===");
+
+    // Print unsorted received frames
+    Utils::logMessage("Order of frames as received:");
+    std::vector<Frame> receivedFrames = receiver.getSortedFrames();
+    for (const auto& frame : receivedFrames) {
+        std::cout << frame.sequenceNumber << " ";
+    }
+    std::cout << std::endl;
+
+    // Show statistics
+    Utils::logMessage("\nTransmission Statistics:");
+    Utils::logMessage("Frames requested: " + std::to_string(numFrames));
+    Utils::logMessage("Frames actually sent: " + std::to_string(actualFramesSent));
+    Utils::logMessage("Frames corrupted: " + std::to_string(corruptedFrames.size()));
+
+    if (actualFramesSent > 0) {
+        Utils::logMessage("Actual corruption rate: " +
+            std::to_string((double)corruptedFrames.size() / actualFramesSent * 100) + "%");
+    }
+
+    Utils::logMessage("Total transmissions: " +
+        std::to_string(actualFramesSent + corruptedFrames.size()));
+
+    Utils::printDivider('=', 70);
+}

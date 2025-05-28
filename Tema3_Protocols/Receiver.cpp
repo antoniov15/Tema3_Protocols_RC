@@ -23,7 +23,7 @@ void Receiver::receiveFrame(const Frame& frame) {
 	}
 
 	if (frame.sequenceNumber == expectedSeqNum) {
-		std::cout << "Frame " << frame.sequenceNumber << " is the expexted frame.\n";
+		std::cout << "Frame " << frame.sequenceNumber << " is the expected frame.\n";
 
 		receivedFrames.push_back(frame); // adauga frame-ul in lista de frame-uri primite
 		expectedSeqNum++; // incrementeaza numarul de secventa asteptat

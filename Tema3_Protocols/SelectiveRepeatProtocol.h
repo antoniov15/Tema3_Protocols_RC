@@ -15,4 +15,7 @@ public:
 
 	//simuleaza functionarea generala
 	void simulate(int numFrames);
+
+	// corupere random
+	void simulateWithRandomCorruption(int numFrames, double corruptionRate);
 };
