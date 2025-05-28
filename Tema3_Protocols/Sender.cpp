@@ -14,12 +14,12 @@ bool Sender::canSendFrame() {
 }
 
 Frame Sender::sendFrame() {
-	if (canSendFrame()) {
+	if (!canSendFrame()) {
 		std::cerr << "Error: Cannot send frame, window is full.\n";
 
 		Frame invalidFrame;
 		invalidFrame.sequenceNumber = UINT32_MAX;
-		invalidFrame.isCorrrupted = true;
+		invalidFrame.isCorrupted = true;
 		return invalidFrame; // returneaza un frame invalids
 	}
 
@@ -93,7 +93,7 @@ bool Sender::printWndowStatus() {
 	else {
 		for (const auto& frame : window) {
 			std::cout << "  Frame " << frame.sequenceNumber;
-			if (frame.isCorrrupted) {
+			if (frame.isCorrupted) {
 				std::cout << " (corrupted)";
 			}
 			std::cout << std::endl;

@@ -52,7 +52,7 @@ void SelectiveRepeatProtocol::simulateSpecificScenario() {
     Utils::logMessage("Step 3: Sending Frame 3 (will be corrupted)");
     Frame frame3 = sender.sendFrame();
     // Corrupt the frame
-    frame3.isCorrrupted = true;
+    frame3.isCorrupted = true;
     Utils::logMessage("Frame 3 corrupted!");
     receiver.receiveFrame(frame3);
 
@@ -141,7 +141,7 @@ void SelectiveRepeatProtocol::simulate(int numFrames) {
             receiver.receiveFrame(frame);
 
             // If the frame was not corrupted, sender receives ACK
-            if (!frame.isCorrrupted) {
+            if (!frame.isCorrupted) {
                 sender.receiveAck(frame.sequenceNumber);
             }
         }

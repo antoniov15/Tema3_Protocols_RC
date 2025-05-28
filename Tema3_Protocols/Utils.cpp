@@ -28,7 +28,7 @@ Frame Utils::simulateCorruption(const Frame& frame, double corruptionRate) {
     Frame result = frame;
 
     if (simulateChannelError(corruptionRate)) {
-        result.isCorrrupted = true;
+        result.isCorrupted = true;
         logMessage("Frame " + std::to_string(frame.sequenceNumber) + " corrupted during transmission");
     }
 

@@ -12,7 +12,7 @@ Receiver::Receiver(uint32_t windowSize) : windowSize(windowSize) {
 void Receiver::receiveFrame(const Frame& frame) {
 	std::cout << "Received frame with sequence number: " << frame.sequenceNumber << "\n";
 
-	if (frame.isCorrrupted) {
+	if (frame.isCorrupted) {
 		std::cout << "Frame " << frame.sequenceNumber << " is corrupted. Discarding.\n";
 		return;
 	}
@@ -72,7 +72,7 @@ bool Receiver::printBufferStatus() {
 	else {
 		for (const auto& frame : receivedFrames) {
 			std::cout << "Frame " << frame.sequenceNumber;
-			if (frame.isCorrrupted) {
+			if (frame.isCorrupted) {
 				std::cout << " (corrupted)";
 			}
 			std::cout << '\n';
@@ -86,7 +86,7 @@ bool Receiver::printBufferStatus() {
 	else {
 		for (const auto& pair : buffer) {
 			std::cout << "  Frame " << pair.first;
-			if (pair.second.isCorrrupted) {
+			if (pair.second.isCorrupted) {
 				std::cout << " (corrupted)";
 			}
 			std::cout << '\n';
